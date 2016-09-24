@@ -1,0 +1,153 @@
+<!--
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js"></script>
+
+<!-- Material Design Light -->
+<link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue-red.min.css" />
+<script src="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+<style>
+#container {
+  margin: 0 15px;
+}
+#loading {
+  width: 100%;
+}
+.title {
+  margin: 0.5em 0;
+}
+.spacer {
+  height: 5px;
+}
+</style>
+
+<!-- Use a spacer so the iframe doesn't scroll -->
+<div class="spacer"></div>
+
+<div id="container" class="mdl-color-text--grey-600">
+  <div class="title mdl-typography--title">Hours of Sleep</div>
+  <div id="loading" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+  <div id="chart"></div>
+</div>
+
+<script type="text/javascript">
+  var dayAvg = 30;
+  
+  $('#chart').highcharts('StockChart', {
+    rangeSelector : {
+      // Show a shorter range if the screen is small
+      selected : ($(window).width() > 1000) ? 1 : 0
+    },
+    
+    title : {
+        text : null
+    },
+
+    xAxis: {
+      type: 'datetime',
+      // Set ordinal to false so the x-axis is shown
+      // in a proper time based separation.
+      ordinal: false
+    },
+    
+    series : [{
+        name : 'Hours',
+        type: 'area',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    }, {
+        name : 'Deep Sleep',
+        type: 'area',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    },
+    {
+        name : dayAvg + ' Day Average',
+        type: 'line',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    },
+    {
+        name : 'Deep Sleep ' + dayAvg + ' Day Average',
+        type: 'line',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    }]
+  });
+
+  /**
+   * Creates a dataset contanining the moving average of the given
+   * data over the given number of days.
+   */
+  function movingAverage(days, data) {
+    var win = [];
+    var avg = [];
+
+
+    for (var i=0; i<data.length; i++) {
+      // Remove data that exceeds the given number of the days from the window.
+      var j = 0;
+      // TODO: Handle timezone.
+      while (j < win.length && win[j][0] < data[i][0] - (days * 24 * 60 * 60 * 1000)) {
+        j++;
+      }
+      for (var k=0; k<j; k++) {
+        win.shift();
+      }
+
+      // Add the current value to the window.
+      win.push(data[i]);
+
+      
+      // Calculate the average for the window.
+      var winTotal = 0;
+      for (var k=0; k<win.length; k++) {
+        winTotal+=win[k][1];
+      }
+
+      avg.push([data[i][0], winTotal/win.length]);
+    }
+
+    return avg;
+  }
+
+  var chart = $("#chart").highcharts();
+  $("#loading").show();
+  chart.showLoading('Loading...');
+  google.script.run.withSuccessHandler(function(data) {
+    console.log(data.hours);
+    chart.series[0].setData(data.hours);
+    chart.series[1].setData(data.deepSleep);
+    chart.series[2].setData(movingAverage(dayAvg, data.hours));
+    chart.series[3].setData(movingAverage(dayAvg, data.deepSleep));
+    $("#loading").hide();
+    chart.hideLoading();
+  }).withFailureHandler(function(msg) {
+    $("#loading").hide();
+    chart.showLoading('Error: ' + msg);
+  }).getSleepDataGraphData();
+</script>

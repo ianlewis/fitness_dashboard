@@ -1,0 +1,345 @@
+<!--
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/stock/2.1.5/highstock.js"></script>
+
+<!-- Material Design Light -->
+<link rel="stylesheet" href="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.blue-red.min.css" />
+<script src="https://storage.googleapis.com/code.getmdl.io/1.0.5/material.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+<!-- Moment.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.4.1/moment-timezone.js" />
+
+<style>
+#container {
+  margin: 0 15px;
+}
+#summary {
+  font-size: 24px;
+  margin-top: 0.15em;
+}
+#loading {
+  width: 100%;
+}
+.title {
+  margin: 0.5em 0;
+}
+.spacer {
+  height: 5px;
+}
+</style>
+
+<!-- NOTE: Workaround to so the iframe doesn't scroll -->
+<div class="spacer"></div>
+
+<div id="container" class="mdl-color-text--grey-600">
+  <div class="title mdl-typography--title">Movement</div>
+
+  <button id="row-selector" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" data-rowid="<?= rows[0].Id ?>">
+    <?= rows[0].From.toLocaleString() ?>
+  </button>
+  <ul id="row-menu" class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect"
+      for="row-selector">
+    <? for (var i = 0; i < rows.length && i < 7; i++) { ?>
+    <li class="mdl-menu__item" data-rowid="<?= rows[i].Id ?>"><?= rows[i].From.toLocaleString() ?></li>
+    <? } ?>
+  </ul>
+
+  <div id="summary">
+    <div>
+      <i class="material-icons">schedule</i>
+      <span id="hours"></span>
+    </div>
+    <div>
+      <i class="material-icons">timelapse</i>
+      <span id="deepsleep"></span>
+    </div>
+  </div>
+
+  <div id="loading" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+
+  <div id="chart"></div>
+</div>
+
+<script type="text/javascript">
+  var dayAvg = 30;
+
+  var CLOCK_IMG_DATA = ''
+    + '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'
+    + 'L5FXrdewt6V3qvdh7xc+9j5yn+M+4zw33jLeWV/MN8C3yLfLT8Nvnl+F30N/I/9k/3r/0QCngCUBZwOJgUGBWwL7'
+    + '+Hp8Ib+OPzrbZfay2e1BjKC5QRVBj4KtguXBrSFoyOyQrSH355jOkc5pDoVQfujW0Adh5mGLw34MJ4WHhVeGP45w'
+    + 'iFga0TGXNXfR3ENz30T6RJZE3ptnMU85ry1KNSo+qi5qPNo3ujS6P8YuZlnM1VidWElsSxw5LiquNm5svt/87fOH'
+    + '4p3iC+N7F5gvyF1weaHOwvSFpxapLhIsOpZATIhOOJTwQRAqqBaMJfITdyWOCnnCHcJnIi/RNtGI2ENcKh5O8kgq'
+    + 'TXqS7JG8NXkkxTOlLOW5hCepkLxMDUzdmzqeFpp2IG0yPTq9MYOSkZBxQqohTZO2Z+pn5mZ2y6xlhbL+xW6Lty8e'
+    + 'lQfJa7OQrAVZLQq2QqboVFoo1yoHsmdlV2a/zYnKOZarnivN7cyzytuQN5zvn//tEsIS4ZK2pYZLVy0dWOa9rGo5'
+    + 'sjxxedsK4xUFK4ZWBqw8uIq2Km3VT6vtV5eufr0mek1rgV7ByoLBtQFr6wtVCuWFfevc1+1dT1gvWd+1YfqGnRs+'
+    + 'FYmKrhTbF5cVf9go3HjlG4dvyr+Z3JS0qavEuWTPZtJm6ebeLZ5bDpaql+aXDm4N2dq0Dd9WtO319kXbL5fNKNu7'
+    + 'g7ZDuaO/PLi8ZafJzs07P1SkVPRU+lQ27tLdtWHX+G7R7ht7vPY07NXbW7z3/T7JvttVAVVN1WbVZftJ+7P3P66J'
+    + 'qun4lvttXa1ObXHtxwPSA/0HIw6217nU1R3SPVRSj9Yr60cOxx++/p3vdy0NNg1VjZzG4iNwRHnk6fcJ3/ceDTra'
+    + 'dox7rOEH0x92HWcdL2pCmvKaRptTmvtbYlu6T8w+0dbq3nr8R9sfD5w0PFl5SvNUyWna6YLTk2fyz4ydlZ19fi75'
+    + '3GDborZ752PO32oPb++6EHTh0kX/i+c7vDvOXPK4dPKy2+UTV7hXmq86X23qdOo8/pPTT8e7nLuarrlca7nuer21'
+    + 'e2b36RueN87d9L158Rb/1tWeOT3dvfN6b/fF9/XfFt1+cif9zsu72Xcn7q28T7xf9EDtQdlD3YfVP1v+3Njv3H9q'
+    + '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';
+
+  // Highcharts only allows you to set timezone offsets globally.
+  // This value is set later after we get movement data from the server.
+  var TIMEZONE = "UTC";
+
+  Highcharts.setOptions({
+    global: {
+      /**
+       * Use moment-timezone.js to return the timezone offset for individual 
+       * timestamps, used in the X axis labels and the tooltip header.
+       */
+      getTimezoneOffset: function (timestamp) {
+        // Get the offset for the timezone and offset.
+        return moment.tz.zone(TIMEZONE).offset(timestamp);
+      }
+    }
+  });
+  
+  $('#chart').highcharts({
+    chart: {
+      type: 'areaspline'
+    },
+
+    rangeSelector: {
+      selected: 1
+    },
+    
+    title: {
+      text: null
+    },
+
+    xAxis: {
+      type: 'datetime',
+      // Set ordinal to false so the x-axis is shown
+      // in a proper time based separation.
+      ordinal: false
+    },
+    yAxis: {
+      title: {
+        text: null
+      },
+      labels: {
+        enabled: false
+      }
+    },
+    
+    series: [{
+      name: 'Movement',
+      data: [],
+      tooltip: {
+        valueDecimals: 2
+      }
+    }, {
+      type: 'flags',
+      name: 'Events',
+      color: '#333333',
+      shape: 'url(data:image/png;base64,' + CLOCK_IMG_DATA + ')',
+      //y: -55,
+      data: [],
+      showInLegend: false            
+    }],
+    
+    plotOptions: {
+      areaspline: {
+        marker: {
+          enabled: false
+        }
+      }
+    },
+    legend: {
+      enabled: false
+    }
+  });
+
+  var chart = $("#chart").highcharts();
+
+  function formatHours(hourDec) {
+    var hours = Math.floor(hourDec);
+    var minutes = Math.round((hourDec - hours) * 60);
+    
+    if (minutes < 10) {
+      minutes = "0" + minutes;
+    }
+
+    return hours + ":" + minutes;
+  }
+
+  function loadRow(rowId) {
+    $("#loading").show();
+    chart.showLoading('Loading...');
+    $("#row-selector").prop('disabled', true);
+    google.script.run.withSuccessHandler(function(data) {
+      var parsed = [];
+
+      TIMEZONE = data[0][0];
+      var movementData = data[0][1];
+      var eventData = data[1];
+      var summary = data[2];
+
+      $("#hours").text(formatHours(summary.Hours));
+      $("#deepsleep").text(Math.round(summary.DeepSleep * 100) + "% " + formatHours(summary.DeepSleepHours) + " " + summary.Cycles + "x");
+      
+      for (var i=0;i<movementData.length;i++) {
+        // TODO: Only support JST for now.
+        //parsed.push({x: new Date(movementData[i][0] - (9 * 60 * 60 * 1000)), y: movementData[i][1]});
+        parsed.push({x: moment(movementData[i][0]).tz(TIMEZONE).toDate().getTime(), y: movementData[i][1]});
+      }
+      chart.series[0].setData(parsed);
+      
+      var alarmData = [];
+      var startBroken = null; // Awake
+      var startLight = null;
+      var startDeep = null;
+      var startRem = null;
+      for (var i=0;i<eventData.length;i++) {
+        if (eventData[i].name === "BROKEN_START") {
+          startBroken = eventData[i].timestamp;
+        } else if (eventData[i].name === "BROKEN_END") {
+          if (startBroken !== null) {
+            chart.xAxis[0].addPlotBand({
+              from: startBroken,
+              to: eventData[i].timestamp,
+              color: '#FFEFFF'
+            });
+          }
+          startBroken = null;
+        } else if (eventData[i].name === "LIGHT_START") {
+          startLight = eventData[i].timestamp;
+        } else if (eventData[i].name === "LIGHT_END") {
+          if (startLight !== null) {
+            chart.xAxis[0].addPlotBand({
+              from: startLight,
+              to: eventData[i].timestamp,
+              color: '#FFFFEF'
+            });
+          }
+          startLight = null;
+        } else if (eventData[i].name === "DEEP_START") {
+          startDeep = eventData[i].timestamp;
+        } else if (eventData[i].name === "DEEP_END" || eventData[i].name === "REM_START") {
+          // REM sleep overlaps deep sleep so stop deep sleep and
+          // start REM sleep.
+          if (eventData[i].name === "REM_START") {
+            startRem = eventData[i].timestamp;
+          }
+          
+          if (startDeep !== null) {
+            chart.xAxis[0].addPlotBand({
+              from: startDeep,
+              to: eventData[i].timestamp,
+              color: '#EFFFFF'
+            });
+          }
+          startDeep = null;
+        } else if (eventData[i].name === "REM_END") {
+          if (startRem !== null) {
+            chart.xAxis[0].addPlotBand({
+              from: startRem,
+              to: eventData[i].timestamp,
+              color: '#FFEFFF'
+            });
+          }
+          startRem = null;
+        } else if (eventData[i].name === "ALARM_STARTED") {
+          alarmData.push({
+            x: new Date(eventData[i].timestamp),
+            text: 'Alarm',
+            title: ' '
+          });
+        }
+      }
+      chart.series[1].setData(alarmData);
+      
+      $("#loading").hide();
+      chart.hideLoading();
+      $("#row-selector").prop('disabled', false);
+    }).withFailureHandler(function(msg) {
+      $("#loading").hide();
+      chart.showLoading('Error: ' + msg);
+      $("#row-selector").prop('disabled', false);
+    }).getMovementGraphData(parseInt(rowId, 10));
+  }
+  
+  $("#row-menu li").click(function() {
+    $("#row-selector").text($(this).text());
+    loadRow($(this).data("rowid"));
+  });
+  
+  loadRow($("#row-selector").data("rowid"));
+</script>

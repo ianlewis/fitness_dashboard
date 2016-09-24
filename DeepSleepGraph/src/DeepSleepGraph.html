@@ -1,0 +1,69 @@
+<!--
+Copyright 2015 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script type="text/javascript" src="https://code.highcharts.com/stock/highstock.js"></script>
+<div>
+  <div id="container"></div>
+</div>
+
+<script type="text/javascript">
+  var dayAvg = 30;
+  
+  $('#container').highcharts('StockChart', {
+    rangeSelector : {
+      // Show a shorter range if the screen is small
+      selected : ($(window).width() > 1000) ? 1 : 0
+    },
+
+    title : {
+        text : 'Deep Sleep'
+    },
+
+    xAxis: {
+      type: 'datetime',
+      // Set ordinal to false so the x-axis is shown
+      // in a proper time based separation.
+      ordinal: false
+    },
+    
+    series : [{
+        name : '% Deep Sleep',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    },
+    {
+        name : dayAvg + ' Day Average',
+        data : [],
+        tooltip: {
+            valueDecimals: 2
+        }
+    }]
+  });
+
+
+  var chart = $("#container").highcharts();
+  chart.showLoading('Loading...');
+  google.script.run.withSuccessHandler(function(data) {
+    chart.series[0].setData(data.deepSleep);
+    chart.series[1].setData(data.avg);
+    chart.hideLoading();
+  }).withFailureHandler(function(msg) {
+    chart.showLoading('Error: ' + msg);
+  }).getDeepSleepGraphData(dayAvg);
+</script>
