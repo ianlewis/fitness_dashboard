@@ -7,6 +7,8 @@ This widget requires that you add the [OAuth2 apps script
 library](https://github.com/googlesamples/apps-script-oauth2) as a library for
 your project.
 
+![](screenshot.png)
+
 # Setup
 
 # Requirements
