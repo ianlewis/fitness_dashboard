@@ -51,8 +51,8 @@ $ gulp
 
 ## Upload
 
-Use gapps to upload the code:
+You can use the upload task to upload the code to Google Drive.
 
 ```console
-$ gapps upload
+$ gulp upload
 ```
