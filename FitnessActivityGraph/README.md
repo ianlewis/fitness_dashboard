@@ -9,15 +9,15 @@ your project.
 
 ![](screenshot.png)
 
-# Setup
+## Setup
 
-# Requirements
+### Requirements
 
 1. node
 1. npm
 1. gulp
  
-## Install dependencies
+### Install dependencies
 
 Run npm:
 
@@ -32,16 +32,30 @@ material-ui because npm sucks.
 $ rm -rf node_modules/material-ui/node_modules/react
 ```
 
-## Setup Google Apps Script Project
+### Setup Google Apps Script Project
 
 1. Go to http://script.google.com/.
 1. Choose a name for the project and click save.
 1. Follow the [node-google-apps-script quickstart](https://www.npmjs.com/package/node-google-apps-script) to setup the gapps script.
 1. Enable the Fitness API for the Apps Script Project.
 
-TODO: Authorization etc.
+### Authentication
 
-# Build
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init --subdir dist
+```
+
+### Initialization
+
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init <fileid>
+```
+
+## Build
 
 Build the app using gulp. This will combine all the javascript
 files into a single Index.html and Code.js in the dist
@@ -52,7 +66,7 @@ the server side code.
 $ gulp
 ```
 
-# Upload
+## Upload
 
 You can use the upload task to upload the code to Google Drive.
 

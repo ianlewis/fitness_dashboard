@@ -30,14 +30,28 @@ material-ui because npm sucks.
 $ rm -rf node_modules/material-ui/node_modules/react
 ```
 
-
-
 ### Setup Google Apps Script Project
 
 1. Go to http://script.google.com/.
 1. Choose a name for the project and click save.
 1. Follow the [node-google-apps-script quickstart](https://www.npmjs.com/package/node-google-apps-script) to setup the gapps script.
 1. Enable the Fitness API for the Apps Script Project.
+
+### Authentication
+
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init --subdir dist
+```
+
+### Initialization
+
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init <fileid>
+```
 
 ## Build
 

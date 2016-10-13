@@ -16,3 +16,51 @@ var d = s.getData(fromDate, toDate);
 // Get data grouped by day.
 var g = s.getGroupedData(fromDate, toDate);
 ```
+## Setup
+
+### Requirements
+
+1. node
+1. npm
+1. gulp
+
+### Install dependencies
+
+Run npm:
+
+```console
+$ npm install
+```
+
+### Authentication
+
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init --subdir dist
+```
+
+### Initialization
+
+TODO
+
+```console
+$ ./node_modules/.bin/gapps init <fileid>
+```
+
+## Build
+
+Build the app using gulp. This will combine all the javascript
+files into a single, compact Code.js in the dist directory.
+
+```console
+$ gulp
+```
+
+## Upload
+
+You can use the upload task to upload the code to Google Drive.
+
+```console
+$ gulp upload
+```
