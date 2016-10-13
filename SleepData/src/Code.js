@@ -18,14 +18,12 @@ limitations under the License.
 * Creates a new SleepData object that contains all sleep data.
 *
 * @param {sheet_url} A url to the Sleep as Android backup spreadsheet
-* @param {old_sheet_url} A url to the old sleep data spreadsheet
 */
-function SleepData(sheet_url, old_sheet_url) {
+function SleepData(sheet_url) {
   this._loaded = false;
   this.data = [];
   this.grouped = [];
   this.SHEET_URL = sheet_url;
-  this.OLD_SHEET_URL = old_sheet_url;
   
   this.rawDataValues = [];
 }
@@ -56,27 +54,8 @@ SleepData.prototype.loadData = function() {
     var newData = [];
     var grouped_obj = {};
     
-    // Add the data from the SleepBot backup file.
-
-    var oldSheet = SpreadsheetApp.openByUrl(this.OLD_SHEET_URL).getActiveSheet();
-    var oldDataValues = oldSheet.getDataRange().getValues();
-    
-    // Skip the first row.
-    for (var i = 2; i < oldDataValues.length; i++) {
-      var row = {};
-      row.From = oldDataValues[i][0];
-      row.Hours = oldDataValues[i][1];
-      row.DeepSleep = -1;
-      
-      addToGroup_(grouped_obj, row);
-      newData.push(row);
-    }
-    
     // Load data from the Sleep as Android backup file.
-    
     var sheet = SpreadsheetApp.openByUrl(this.SHEET_URL).getActiveSheet();
-    // The data we want to get starts at the 1st column.
-    // That's why we can use this.COLS.length without manipulation.
     this.rawDataValues = sheet.getDataRange().getValues();
     
     // The actual data is not contained in every row so we need to skip rows here.
@@ -93,7 +72,7 @@ SleepData.prototype.loadData = function() {
       }
       normalize_(row);
       
-      addToGroup_(grouped_obj, row, 6);
+      addToGroup_(grouped_obj, row);
       newData.push(row);
     }
     this.data = newData;
@@ -257,15 +236,10 @@ SleepData.prototype.getGroupedData = function(fromDate, toDate) {
  * Groups sleep data by date. Effectively giving you
  * how much you slept each day.
  */
-function addToGroup_(group_obj, row, subtractHours) {
-  subtractHours = subtractHours | 0;
-  // Subtract hours from the from date so that we get
-  // a better picture of when you went to sleep.
-  var fromDate = new Date(row.From.getTime() - subtractHours * 60 * 60 * 1000)
-
-  var year = fromDate.getFullYear();
-  var month = fromDate.getMonth();
-  var day = fromDate.getDate();
+function addToGroup_(group_obj, row) {
+  var year = row.To.getFullYear();
+  var month = row.To.getMonth();
+  var day = row.To.getDate();
   if (!(year in group_obj)) {
       group_obj[year] = {};
   }
@@ -328,8 +302,8 @@ function parseDate_(dateStr) {
     if (dateStr.getDate() <= 12) {
       return new Date(
         dateStr.getFullYear(),
-        dateStr.getMonth() + 1,
         dateStr.getDate() - 1,
+        dateStr.getMonth() + 1,
         dateStr.getHours(),
         dateStr.getMinutes()
       );
@@ -386,8 +360,7 @@ function parseOldDate_(dateStr, tz) {
 
 function test() {
   var s = new SleepData(
-    "https://docs.google.com/spreadsheets/d/1nv2WerPfSZK5TVRrVttscwJjGyUeQHbKIId5Wzz6wdA/edit",
-    "https://docs.google.com/spreadsheets/d/1twQB4DUV0uj2U7dDnMnc65HqKPSN9ByMqdHIQrKn3-o/edit"
+    "https://docs.google.com/spreadsheets/d/1nv2WerPfSZK5TVRrVttscwJjGyUeQHbKIId5Wzz6wdA/edit"
   );
   Logger.log(s.getMovementData(1445609660878));
 }
