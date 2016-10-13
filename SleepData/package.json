@@ -1,0 +1,15 @@
+{
+    "name": "sleep-data",
+    "version": "1.0.0",
+    "description": "Apps Script application to load sleep data from a Google Spreadsheet.",
+    "author": "Ian Lewis <ianmlewis@gmail.com>",
+    "devDependencies": {
+        "gulp": "3.9.1",
+        "gulp-uglify": "1.5.4",
+        "gulp-clean": "0.3.2",
+        "gulp-shell": "0.5.2", 
+        "require-dir": "0.3.0",
+        "node-google-apps-script": "1.1.5"
+    },
+    "license": "Apache-2.0"
+}

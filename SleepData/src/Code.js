@@ -101,7 +101,7 @@ SleepData.prototype.loadData = function() {
     
     this._loaded = true;
   }
-}
+};
 
 SleepData.prototype.getMovementData = function(rowId) {
   this.loadData();
@@ -141,7 +141,7 @@ SleepData.prototype.getMovementData = function(rowId) {
           day: date,
           hours: hours,
           minutes: minutes
-        }, this.rawDataValues[i][j]);
+        }, this.rawDataValues[i][j]]);
         
         j++;
         prevHours = hours;
@@ -151,7 +151,7 @@ SleepData.prototype.getMovementData = function(rowId) {
       return [tz, movementData];
     }
   }
-}
+};
 
 SleepData.prototype.getEventData = function(rowId) {
   this.loadData();
@@ -189,7 +189,7 @@ SleepData.prototype.getEventData = function(rowId) {
       });
     }
   }
-}
+};
 
 
 SleepData.prototype.getSummary = function(rowId) {
@@ -214,7 +214,7 @@ SleepData.prototype.getSummary = function(rowId) {
       }
     }
   }
-}
+};
 
 /**
 * Gets the raw sleep data.
@@ -232,7 +232,7 @@ SleepData.prototype.getData = function(fromDate, toDate) {
     }
   }
   return data;
-}
+};
 
 /**
 * Gets data grouped by date. This allows you to get a summary
@@ -251,7 +251,7 @@ SleepData.prototype.getGroupedData = function(fromDate, toDate) {
     }
   }
   return data;
-}
+};
 
 /**
  * Groups sleep data by date. Effectively giving you
