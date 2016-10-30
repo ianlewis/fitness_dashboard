@@ -18,6 +18,18 @@ import React from 'react';
 import Highcharts from 'highcharts/highstock';
 
 var Chart = React.createClass({
+    reload: function() {
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
+      // Set container which the chart should render to.
+      this.chart = new Highcharts[this.props.type || "Chart"](
+          this.props.container,
+          this.props.options
+      );
+    },
+
     // When the DOM is ready, create the chart.
     componentDidMount: function () {
         // Extend Highcharts with modules
@@ -26,11 +38,8 @@ var Chart = React.createClass({
                 module(Highcharts);
             });
         }
-        // Set container which the chart should render to.
-        this.chart = new Highcharts[this.props.type || "Chart"](
-            this.props.container, 
-            this.props.options
-        );
+
+        this.reload();
     },
 
     //Destroy chart before unmount.

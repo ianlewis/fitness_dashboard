@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import React from 'react';
+import React, {PropTypes} from 'react';
 
 import { browserHistory } from 'react-router';
 
-import AppBar from 'material-ui/AppBar';
+import {Toolbar, ToolbarGroup, ToolbarTitle} from 'material-ui/Toolbar';
 import IconButton from 'material-ui/IconButton';
+import FontIcon from 'material-ui/FontIcon';
+import FlatButton from 'material-ui/FlatButton';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
@@ -42,6 +44,10 @@ var Main = React.createClass({
     browserHistory.push("/authorize");
   },
 
+  refreshChart: function() {
+    this.refs.chart.refresh();
+  },
+
   unlink: function() {
     var self = this;
 
@@ -51,6 +57,10 @@ var Main = React.createClass({
       alert(msg);
       location.reload();
     }).unlink();
+  },
+
+  contextTypes: {
+    muiTheme: PropTypes.object.isRequired,
   },
 
   componentWillMount: function() {
@@ -75,14 +85,29 @@ var Main = React.createClass({
 
   render: function() {
     if (this.state.ready) {
+      const styles = {backgroundColor: this.context.muiTheme.appBar.color};
+      const textStyles = {color: this.context.muiTheme.appBar.textColor};
+      const iconButtonIconStyle = {
+        fill: this.context.muiTheme.appBar.textColor,
+        color: this.context.muiTheme.appBar.textColor,
+      };
+
       return (
         <div>
-          <AppBar
-            title="Activity"
-            iconElementRight={
+          <Toolbar style={styles}>
+            <ToolbarGroup>
+              <ToolbarTitle text="Activity" style={textStyles} />
+            </ToolbarGroup>
+            <ToolbarGroup>
+              <FlatButton
+                label="Refresh"
+                icon={<FontIcon className="material-icons">refresh</FontIcon>}
+                onTouchTap={this.refreshChart}
+                style={textStyles}
+              />
               <IconMenu
                 iconButtonElement={
-                  <IconButton><MoreVertIcon /></IconButton>
+                  <IconButton iconStyle={iconButtonIconStyle}><MoreVertIcon /></IconButton>
                 }
                 targetOrigin={{horizontal: 'right', vertical: 'top'}}
                 anchorOrigin={{horizontal: 'right', vertical: 'top'}}
@@ -96,9 +121,9 @@ var Main = React.createClass({
                   onTouchTap={this.unlink}
                 />
               </IconMenu>
-            }
-          />
-          <ActivityChart />
+            </ToolbarGroup>
+          </Toolbar>
+          <ActivityChart ref="chart" />
         </div>
       );
     } else {

@@ -83,20 +83,22 @@ var chartOptions = {
 };
 
 var ActivityChart = React.createClass({
-  componentDidMount: function() {
-    var chart = this.refs.chart.chart;
+  refresh: function() {
+    var chart = this.refs.chart;
 
-    chart.showLoading('Loading...');
+    chart.reload();
+
+    chart.chart.showLoading('Loading...');
 
     google.script.run.withSuccessHandler(function(data) {
       // Set the base series for the navigator to the average.
-      chart.options.navigator.series = {data: data.avg};
+      chart.chart.options.navigator.series = {data: data.avg};
 
       for (var activity in data.data) {
         if (data.data.hasOwnProperty(activity)) {
           var activityName = activity.toLowerCase().replace("_", " ");
           activityName = activityName.charAt(0).toUpperCase() + activityName.slice(1);
-          chart.addSeries({
+          chart.chart.addSeries({
             name: activityName,
             type: 'area',
             data : data.data[activity]
@@ -104,7 +106,7 @@ var ActivityChart = React.createClass({
         }
       }
 
-      chart.addSeries({
+      chart.chart.addSeries({
         name : dayAvg + ' Day Average',
         type: 'line',
         data : data.avg,
@@ -113,14 +115,18 @@ var ActivityChart = React.createClass({
         }
       });
 
-      chart.hideLoading();
+      chart.chart.hideLoading();
     }).withFailureHandler(function(msg) {
-      chart.showLoading('Error: ' + msg);
+      chart.chart.showLoading('Error: ' + msg);
     }).getActivityGraphData(
       Date.UTC(1970, 0, 1),
       Date.now(),
       dayAvg
     );
+  },
+
+  componentDidMount: function() {
+    this.refresh();
   },
 
   render: function() {
