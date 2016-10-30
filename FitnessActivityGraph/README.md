@@ -43,16 +43,13 @@ $ rm -rf node_modules/material-ui/node_modules/react
 
 TODO
 
-```console
-$ ./node_modules/.bin/gapps init --subdir dist
-```
 
 ### Initialization
 
-TODO
+Initialize the project with the Apps Script file id and specify the `dist` directory as the subdirectory to sync.
 
 ```console
-$ ./node_modules/.bin/gapps init <fileid>
+$ ./node_modules/.bin/gapps init --subdir dist <fileid>
 ```
 
 ## Build
